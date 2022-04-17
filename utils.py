@@ -197,7 +197,7 @@ def create_features(data, event, response_var, with_ts=True):
     return X, y
 
 
-def classifier(X, y, model, param_grid=None):
+def classifier(X, y, model, param_grid=None, random_state=None):
     X_train, X_test, y_train, y_test = train_test_split(
         X,
         y,
@@ -207,7 +207,7 @@ def classifier(X, y, model, param_grid=None):
     if 'forest' in model.lower():
         weights = (pd.value_counts(y) / pd.value_counts(y)[1]).astype(int)
         weights = {0: weights[1], 1: weights[0]}
-        rfc = RandomForestClassifier(n_estimators=20, class_weight=weights)
+        rfc = RandomForestClassifier(n_estimators=20, class_weight=weights, random_state=random_state)
         if not param_grid:
             param_grid = {
                 'criterion': ['gini', 'entropy'],
@@ -219,7 +219,7 @@ def classifier(X, y, model, param_grid=None):
         gs_classifier.fit(X_train, y_train)
     elif 'gradient' in model.lower():
         weights = compute_sample_weight('balanced', y_train)
-        gbc = GradientBoostingClassifier(n_estimators=10)
+        gbc = GradientBoostingClassifier(n_estimators=10, random_state=random_state)
         if not param_grid:
             param_grid = {
                 'loss': ['deviance', 'exponential'],
@@ -243,7 +243,7 @@ def classifier(X, y, model, param_grid=None):
     return best
 
 
-def regressor(X, y, model, param_grid=None):
+def regressor(X, y, model, param_grid=None, random_state=None):
     X_train, X_test, y_train, y_test = train_test_split(
         X,
         y,
@@ -251,7 +251,7 @@ def regressor(X, y, model, param_grid=None):
         random_state=42
     )
     if 'forest' in model.lower():
-        rfr = RandomForestRegressor(n_estimators=20)
+        rfr = RandomForestRegressor(n_estimators=20, random_state=random_state)
         if not param_grid:
             param_grid = {
                 'max_depth': [10, 50, 100],
@@ -260,7 +260,7 @@ def regressor(X, y, model, param_grid=None):
             }
         est = rfr
     elif 'gradient' in model.lower():
-        gbr = GradientBoostingRegressor(n_estimators=10)
+        gbr = GradientBoostingRegressor(n_estimators=10, random_state=random_state)
         if not param_grid:
             param_grid = {
                 'learning_rate': [0.01, 0.1, 1],
@@ -275,7 +275,7 @@ def regressor(X, y, model, param_grid=None):
     print(gs_regressor.best_params_)
     y_test_pred = best.predict(X_test)
     y_train_pred = best.predict(X_train)
-    
+
     print("""##################### Training Set ######################\n""")
     print('MAU:', mean_absolute_error(y_true=y_train, y_pred=y_train_pred))
     print('MSE:', mean_squared_error(y_true=y_train, y_pred=y_train_pred))
